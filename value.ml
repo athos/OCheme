@@ -9,6 +9,8 @@ let is_null = function
 
 let as_bool x = Vm.as_bool x
 
+let nil = SNil
+
 let cons car cdr = SPair (car, cdr)
 let car = function
   | SPair (a, _) -> a
@@ -17,6 +19,8 @@ let cdr = function
   | SPair (_, d) -> d
   | _ -> raise @@ Invalid_Operation "can't take cdr of non-pair object"
 
+let from_bool x = SBool x
+let from_int x = SInt x
 let from_list xs = List.fold_right cons xs SNil
 
 let symbol_table : (string, t) Hashtbl.t = Hashtbl.create 256
