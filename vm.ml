@@ -42,8 +42,8 @@ type state = {
   stack : stack
 }
 
-exception Error
-exception Invalid_Operation of string
+exception Runtime_error
+exception Invalid_operation of string
 
 let as_bool = function
     SBool false -> false
@@ -74,7 +74,7 @@ let rec run s =
 	let value =
 	  try Env.lookup v s.env
 	  with e ->
-	    raise Error
+	    raise Runtime_error
 	in run {s with acc = value; next}
     | Constant (value, next) ->
 	run {s with acc = value; next}
@@ -101,12 +101,12 @@ let rec run s =
 	      SClosure (vars, body, env) ->
 		run {s with next = body; env = (Env.extend env vars s.rib)}
 	    | _ ->
-		raise @@ Invalid_Operation (show s.acc ^ " can't be applied")
+		raise @@ Invalid_operation (show s.acc ^ " can't be applied")
 	end
     | Return ->
 	begin
 	  match s.stack with
-	      [] -> raise Error
+	      [] -> raise Runtime_error
 	    | {return = next; cenv = env; crib = rib}::stack ->
 		run {s with next; env; rib; stack}
 	end

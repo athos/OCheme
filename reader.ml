@@ -2,7 +2,7 @@ open Util
 
 module V = Value
   
-exception Error
+exception Read_error
 
 let is_whitespace c =
   match c with
@@ -31,7 +31,7 @@ let is_identifier_letter c =
 let peek s =
   match Stream.peek s with
       Some c -> c
-    | None -> raise Error
+    | None -> raise Read_error
 
 let junk s = Stream.junk s
 
@@ -55,7 +55,7 @@ let read_number s =
 	  iter @@ 10 * n + digit_to_int c
 	end
       else if is_identifier_letter c then
-	raise Error
+	raise Read_error
       else V.from_int n
   in iter 0
 
@@ -83,7 +83,7 @@ let read_bool s =
 	junk s;
 	V.from_bool false
     | _ ->
-	raise Error
+	raise Read_error
 
 let rec read s =
   let c = peek_nonspace s in
@@ -108,7 +108,7 @@ let rec read s =
 	      end
 	    else
 	      V.from_list [V.intern "unquote"; read s]
-      | _ -> raise Error
+      | _ -> raise Read_error
 
 and read_list s =
   junk s;
@@ -120,7 +120,7 @@ and read_list_elements s =
   let c = peek s in
     match c with
 	')' -> V.nil
-      | '.' -> raise Error
+      | '.' -> raise Read_error
       | _ ->
 	  let v = read s in
 	    (* improper list *)
@@ -129,12 +129,12 @@ and read_list_elements s =
 		junk s;
 		(* no objects occur after '.' *)
 		if peek_nonspace s == ')' then
-		  raise Error
+		  raise Read_error
 		else
 		  let v' = read s in
 		    (* more than one objects occur after '.' *)
 		    if peek_nonspace s <> ')' then
-		      raise Error
+		      raise Read_error
 		    else V.cons v v'
 	      end
 	    (* proper list *)

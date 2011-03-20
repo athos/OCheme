@@ -27,8 +27,8 @@ and insn =
 
 type state
 
-exception Error
-exception Invalid_Operation of string
+exception Runtime_error
+exception Invalid_operation of string
 
 val as_bool : value -> bool
 val as_variable : string -> variable

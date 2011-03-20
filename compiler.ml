@@ -3,6 +3,8 @@ open Util
 module S = Syntax
 module V = Value
 
+exception Compile_error
+
 let rec compile code next =
   match code with
       S.SConst c ->

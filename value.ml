@@ -36,10 +36,10 @@ let nil = SNil
 let cons car cdr = SPair (car, cdr)
 let car = function
   | SPair (a, _) -> a
-  | _ -> raise @@ Invalid_Operation "can't take car of non-pair object"
+  | _ -> raise @@ Invalid_operation "can't take car of non-pair object"
 let cdr = function
   | SPair (_, d) -> d
-  | _ -> raise @@ Invalid_Operation "can't take cdr of non-pair object"
+  | _ -> raise @@ Invalid_operation "can't take cdr of non-pair object"
 let caar x = (car $ car) x
 let cadr x = (car $ cdr) x
 let cdar x = (cdr $ car) x
@@ -69,6 +69,6 @@ let intern name =
 
 let symbol_name = function
     SSymbol name -> name
-  | x -> raise @@ Invalid_Operation (show x ^ " is not a symbol")
+  | x -> raise @@ Invalid_operation (show x ^ " is not a symbol")
 
 let show x = Vm.show x
