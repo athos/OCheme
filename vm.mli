@@ -31,6 +31,7 @@ exception Error
 exception Invalid_Operation of string
 
 val as_bool : value -> bool
+val as_variable : string -> variable
 val show : value -> string
 
 val run : state -> value

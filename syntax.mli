@@ -1,4 +1,4 @@
-type variable
+type variable = Vm.variable
 
 type t =
     SConst of Value.t

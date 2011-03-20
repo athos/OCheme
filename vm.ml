@@ -49,6 +49,8 @@ let as_bool = function
     SBool false -> false
   | _ -> true
 
+let as_variable s = s
+
 let rec show = function
     SNil -> "()"
   | SBool true -> "#t"

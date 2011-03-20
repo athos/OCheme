@@ -1,6 +1,6 @@
 open Util
 
-type variable = string
+type variable = Vm.variable
 
 module V = Value
 
@@ -18,7 +18,7 @@ type t =
   | SApply of t * t list
   | SDefinition of variable * t
 
-let as_variable x = x
+let as_variable x = Vm.as_variable x
 
 let variable_of_symbol s =
   as_variable @@ V.symbol_name s
@@ -45,7 +45,7 @@ let rec from_value v =
     if V.is_bool v || V.is_number v then
       SConst v
     else if V.is_symbol v then
-      SVar (V.symbol_name v)
+      SVar (variable_of_symbol v)
     else
       raise @@ Syntax_error ""		(* FIXME *)
   else
