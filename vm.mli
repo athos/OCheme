@@ -3,14 +3,14 @@ type env
 type stack
 
 type value =
-    SNil
-  | SBool of bool
-  | SInt of int
-  | SSymbol of string
-  | SPair of (value * value)
-  | SClosure of variable list * insn * env
-  | SCont of stack
-  | SPrimitive of (value list -> value)
+    Nil
+  | Bool of bool
+  | Int of int
+  | Symbol of string
+  | Pair of (value * value)
+  | Closure of variable list * insn * env
+  | Cont of stack
+  | Primitive of (value list -> value)
 
 and insn =
     Halt
