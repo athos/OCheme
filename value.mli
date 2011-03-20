@@ -1,4 +1,4 @@
-type t
+type t = Vm.value
 
 val is_null : t -> bool
 val is_bool : t -> bool
