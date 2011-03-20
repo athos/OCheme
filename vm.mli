@@ -35,4 +35,7 @@ val as_bool : value -> bool
 val as_variable : string -> variable
 val show : value -> string
 
+val initial_state : insn -> env -> state
+val empty_env : env
+
 val run : state -> value

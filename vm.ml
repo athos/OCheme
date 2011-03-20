@@ -69,6 +69,11 @@ and show_pair (x, xs) =
     | _ -> " . " ^ show xs
   in show x ^ s
 
+let initial_state next env =
+  {acc = SNil; next; env; rib = []; stack = []}
+
+let empty_env = Env.empty
+
 let rec run s =
   match s.next with
       Halt -> s.acc
