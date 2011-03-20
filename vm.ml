@@ -26,12 +26,13 @@ and insn =
   | Apply
   | Return
 
-and stack = {
+and frame = {
   return : insn;
   cenv : env;
   crib : value list;
-  cstack : stack;
 }
+
+and stack = frame list
 
 type state = {
   acc : value;
@@ -45,11 +46,11 @@ exception Error
 exception Invalid_Operation of string
 
 let as_bool = function
-  | SBool false -> false
+    SBool false -> false
   | _ -> true
 
 let rec show = function
-  | SNil -> "()"
+    SNil -> "()"
   | SBool true -> "#t"
   | SBool false -> "#f"
   | SInt i -> string_of_int i
@@ -59,14 +60,14 @@ let rec show = function
   | SCont _ -> "#<cont>"
 and show_pair (x, xs) =
   let s = match xs with
-    | SNil -> ""
+      SNil -> ""
     | SPair p -> " " ^ show_pair p
     | _ -> " . " ^ show xs
   in show x ^ s
 
 let rec run s =
   match s.next with
-    | Halt -> s.acc
+      Halt -> s.acc
     | Refer (v, next) ->
 	let value =
 	  try Env.lookup v s.env
@@ -75,33 +76,35 @@ let rec run s =
 	in run {s with acc = value; next}
     | Constant (value, next) ->
 	run {s with acc = value; next}
-    | Close (vs, body, next) ->
-	run s
+    | Close (vars, body, next) ->
+	run {s with acc = SClosure (vars, body, s.env); next}
     | Test (t, e) ->
-	let next = match s.acc with
-	  | SBool false -> t
-	  | _ -> e
+	let next = if as_bool s.acc then t else e
 	in run {s with next}
     | Assign (v, next) ->
 	Env.update_name v s.acc s.env;
 	run {s with next}
     | Conti next ->
-	run s			(* FIXME *)
+	run {s with acc = SCont s.stack}
     | Nuate (stack, v) ->
 	run s			(* FIXME *)
     | Frame (return, next) ->
-	let stack = {return; cenv = s.env; crib = s.rib; cstack = s.stack}
-	in run {s with rib = []; stack; next}
+	let frame = {return; cenv = s.env; crib = s.rib}
+	in run {s with rib = []; stack = frame::s.stack; next}
     | Argument next ->
 	run {s with rib = (s.acc::s.rib); next}
     | Apply ->
 	begin
 	  match s.acc with
-	    | SClosure (_,_,_) ->		(* FIXME *)
-		run s
+	      SClosure (vars, body, env) ->
+		run {s with next = body; env = (Env.extend env vars s.rib)}
 	    | _ ->
 		raise @@ Invalid_Operation (show s.acc ^ " can't be applied")
 	end
     | Return ->
-	let {return = next; cenv = env; crib = rib; cstack = stack} = s.stack
-	in run {s with next; env; rib; stack}
+	begin
+	  match s.stack with
+	      [] -> raise Error
+	    | {return = next; cenv = env; crib = rib}::stack ->
+		run {s with next; env; rib; stack}
+	end
