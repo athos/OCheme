@@ -1,11 +1,19 @@
 open Util
 
 type variable = string
-type value = Value.t
 type env = (variable, value) Env.t
 
-type insn =
-  | Halt
+and value =
+    SNil
+  | SBool of bool
+  | SInt of int
+  | SSymbol of string
+  | SPair of (value * value)
+  | SClosure of variable list * insn * env
+  | SCont of stack
+
+and insn =
+    Halt
   | Refer of variable * insn
   | Constant of value * insn
   | Close of variable list * insn * insn
@@ -17,6 +25,7 @@ type insn =
   | Argument of insn
   | Apply
   | Return
+
 and stack = {
   return : insn;
   cenv : env;
@@ -33,17 +42,27 @@ type state = {
 }
 
 exception Error
+exception Invalid_Operation of string
 
-let state ?acc ?next ?env ?rib ?stack s =
-  let update p = function
-    | Some v -> v
-    | None -> p in
-  let acc' = update s.acc acc in
-  let next' = update s.next next in
-  let env' = update s.env env in
-  let rib' = update s.rib rib in
-  let stack' = update s.stack stack in
-    {acc = acc'; next = next'; env = env'; rib = rib'; stack = stack'}
+let as_bool = function
+  | SBool false -> false
+  | _ -> true
+
+let rec show = function
+  | SNil -> "()"
+  | SBool true -> "#t"
+  | SBool false -> "#f"
+  | SInt i -> string_of_int i
+  | SSymbol s -> s
+  | SPair p -> "(" ^ show_pair p ^ ")"
+  | SClosure (_,_,_) -> "#<closusure>"
+  | SCont _ -> "#<cont>"
+and show_pair (x, xs) =
+  let s = match xs with
+    | SNil -> ""
+    | SPair p -> " " ^ show_pair p
+    | _ -> " . " ^ show xs
+  in show x ^ s
 
 let rec run s =
   match s.next with
@@ -53,33 +72,36 @@ let rec run s =
 	  try Env.lookup v s.env
 	  with e ->
 	    raise Error
-	in run @@ state s ~acc:value ~next
+	in run {s with acc = value; next}
     | Constant (value, next) ->
-	run @@ state s ~acc:value ~next
+	run {s with acc = value; next}
     | Close (vs, body, next) ->
-	run @@ state s
+	run s
     | Test (t, e) ->
-	let next = if Value.as_bool s.acc then t else e
-	in run @@ state s ~next
+	let next = match s.acc with
+	  | SBool false -> t
+	  | _ -> e
+	in run {s with next}
     | Assign (v, next) ->
 	Env.update_name v s.acc s.env;
-	run @@ state s ~next
+	run {s with next}
     | Conti next ->
-	run @@ state s			(* FIXME *)
+	run s			(* FIXME *)
     | Nuate (stack, v) ->
-	run @@ state s			(* FIXME *)
+	run s			(* FIXME *)
     | Frame (return, next) ->
 	let stack = {return; cenv = s.env; crib = s.rib; cstack = s.stack}
-	in run @@ state s ~rib:[] ~stack ~next
+	in run {s with rib = []; stack; next}
     | Argument next ->
-	run @@ state s ~rib:(s.acc::s.rib) ~next
+	run {s with rib = (s.acc::s.rib); next}
     | Apply ->
-	(match s.acc with
-	   | Value.SClosure ->		(* FIXME *)
-	       run @@ state s
-	   | _ ->
-	       raise @@ Value.Invalid_Operation
-		 (Value.show s.acc ^ " can't be applied"))
+	begin
+	  match s.acc with
+	    | SClosure (_,_,_) ->		(* FIXME *)
+		run s
+	    | _ ->
+		raise @@ Invalid_Operation (show s.acc ^ " can't be applied")
+	end
     | Return ->
 	let {return = next; cenv = env; crib = rib; cstack = stack} = s.stack
-	in run @@ state s ~next ~env ~rib ~stack
+	in run {s with next; env; rib; stack}

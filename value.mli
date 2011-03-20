@@ -1,13 +1,4 @@
-type t =
-    SNil
-  | SBool of bool
-  | SInt of int
-  | SSymbol of string
-  | SPair of (t * t)
-  | SClosure
-  | SCont
-
-exception Invalid_Operation of string
+type t
 
 val is_null : t -> bool
 val as_bool : t -> bool

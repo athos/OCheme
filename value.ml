@@ -1,23 +1,13 @@
 open Util
+open Vm
 
-type t =
-  | SNil
-  | SBool of bool
-  | SInt of int
-  | SSymbol of string
-  | SPair of (t * t)
-  | SClosure
-  | SCont
-
-exception Invalid_Operation of string
+type t = value
 
 let is_null = function
   | SNil -> true
   | _ -> false
 
-let as_bool = function
-  | SBool false -> false
-  | _ -> true
+let as_bool x = Vm.as_bool x
 
 let cons car cdr = SPair (car, cdr)
 let car = function
@@ -39,18 +29,4 @@ let intern name =
       Hashtbl.add symbol_table name sym;
       sym
 
-let rec show = function
-  | SNil -> "()"
-  | SBool true -> "#t"
-  | SBool false -> "#f"
-  | SInt i -> string_of_int i
-  | SSymbol s -> s
-  | SPair p -> "(" ^ show_pair p ^ ")"
-  | SClosure -> "#<closusure>"
-  | SCont -> "#<cont>"
-and show_pair (x, xs) =
-  let s = match xs with
-    | SNil -> ""
-    | SPair p -> " " ^ show_pair p
-    | _ -> " . " ^ show xs
-  in show x ^ s
+let show x = Vm.show x
