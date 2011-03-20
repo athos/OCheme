@@ -10,6 +10,7 @@ type value =
   | SPair of (value * value)
   | SClosure of variable list * insn * env
   | SCont of stack
+  | SPrimitive of (value list -> value)
 
 and insn =
     Halt

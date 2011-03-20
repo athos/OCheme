@@ -11,6 +11,7 @@ and value =
   | SPair of (value * value)
   | SClosure of variable list * insn * env
   | SCont of stack
+  | SPrimitive of (value list -> value)
 
 and insn =
     Halt
@@ -60,6 +61,7 @@ let rec show = function
   | SPair p -> "(" ^ show_pair p ^ ")"
   | SClosure (_,_,_) -> "#<closusure>"
   | SCont _ -> "#<cont>"
+  | SPrimitive _ -> "#<primitive>"
 and show_pair (x, xs) =
   let s = match xs with
       SNil -> ""
