@@ -1,7 +1,7 @@
 open Util
 
-type variable = string
-type env = (variable, value) Env.t
+type pos = Env.pos
+type env = value Env.t
 
 and value =
     Nil
@@ -9,19 +9,19 @@ and value =
   | Int of int
   | Symbol of string
   | Pair of (value * value)
-  | Closure of variable list * insn * env
+  | Closure of insn * env
   | Cont of stack
   | Primitive of (value list -> value)
 
 and insn =
     Halt
-  | Refer of variable * insn
+  | Refer of pos * insn
   | Constant of value * insn
-  | Close of variable list * insn * insn
+  | Close of insn * insn
   | Test of insn * insn
-  | Assign of variable * insn
+  | Assign of pos * insn
   | Conti of insn
-  | Nuate of stack * variable
+  | Nuate of stack * pos
   | Frame of insn * insn
   | Argument of insn
   | Apply
@@ -51,8 +51,6 @@ let as_bool = function
     Bool false -> false
   | _ -> true
 
-let as_variable s = s
-
 let rec show = function
     Nil -> "()"
   | Bool true -> "#t"
@@ -60,7 +58,7 @@ let rec show = function
   | Int i -> string_of_int i
   | Symbol s -> s
   | Pair p -> "(" ^ show_pair p ^ ")"
-  | Closure (_,_,_) -> "#<closusure>"
+  | Closure (_,_) -> "#<closusure>"
   | Cont _ -> "#<cont>"
   | Primitive _ -> "#<primitive>"
 and show_pair (x, xs) =
@@ -81,25 +79,25 @@ let define_variable variable value env =
 let rec run s =
   match s.next with
       Halt -> s.acc
-    | Refer (v, next) ->
+    | Refer (pos, next) ->
 	let value =
-	  try Env.lookup v s.env
+	  try Env.lookup pos s.env
 	  with e ->
 	    raise Runtime_error
 	in run {s with acc = value; next}
     | Constant (value, next) ->
 	run {s with acc = value; next}
-    | Close (vars, body, next) ->
-	run {s with acc = Closure (vars, body, s.env); next}
+    | Close (body, next) ->
+	run {s with acc = Closure (body, s.env); next}
     | Test (t, e) ->
 	let next = if as_bool s.acc then t else e
 	in run {s with next}
-    | Assign (v, next) ->
-	Env.update_name v s.acc s.env;
+    | Assign (pos, next) ->
+	Env.update_name pos s.acc s.env;
 	run {s with next}
     | Conti next ->
 	run {s with acc = Cont s.stack; next}
-    | Nuate (stack, v) ->
+    | Nuate (stack, pos) ->
 	run s			(* FIXME *)
     | Frame (return, next) ->
 	let frame = {return; cenv = s.env; crib = s.rib}
@@ -109,8 +107,8 @@ let rec run s =
     | Apply ->
 	begin
 	  match s.acc with
-	      Closure (vars, body, env) ->
-		run {s with next = body; env = (Env.extend env vars s.rib)}
+	      Closure (body, env) ->
+		run {s with next = body; env = (Env.extend env s.rib)}
 	    | _ ->
 		raise @@ Invalid_operation (show s.acc ^ " can't be applied")
 	end

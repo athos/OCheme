@@ -1,6 +1,6 @@
-type variable
 type env
 type stack
+type pos = Env.pos
 
 type value =
     Nil
@@ -8,19 +8,19 @@ type value =
   | Int of int
   | Symbol of string
   | Pair of (value * value)
-  | Closure of variable list * insn * env
+  | Closure of insn * env
   | Cont of stack
   | Primitive of (value list -> value)
 
 and insn =
     Halt
-  | Refer of variable * insn
+  | Refer of pos * insn
   | Constant of value * insn
-  | Close of variable list * insn * insn
+  | Close of insn * insn
   | Test of insn * insn
-  | Assign of variable * insn
+  | Assign of pos * insn
   | Conti of insn
-  | Nuate of stack * variable
+  | Nuate of stack * pos
   | Frame of insn * insn
   | Argument of insn
   | Apply
@@ -33,11 +33,10 @@ exception Runtime_error
 exception Invalid_operation of string
 
 val as_bool : value -> bool
-val as_variable : string -> variable
 val show : value -> string
 
 val initial_state : insn -> env -> state
 val empty_env : env
-val define_variable : variable -> value -> env -> env
+val define_variable : pos -> value -> env -> env
 
 val run : state -> value
