@@ -1,3 +1,6 @@
 exception Compile_error
 
-val compile : Syntax.t -> Vm.insn -> Vm.insn
+type cenv
+
+val empty_cenv : cenv
+val compile : Syntax.t -> cenv -> Vm.insn -> Vm.insn

@@ -5,40 +5,68 @@ module V = Value
 
 exception Compile_error
 
-let rec compile code next =
+type name = string
+type cenv = name list list
+
+let empty_cenv : cenv = []
+
+let extend cenv vars =
+  vars :: cenv
+
+let compile_lookup name cenv =
+  let rec scan_cenv m = function
+      [] -> raise Compile_error
+    | frame::cenv ->
+	let rec scan_frame n = function
+	    [] -> scan_cenv (m + 1) cenv
+	  | v::frame ->
+	      if v = name then
+		(m, n)
+	      else
+		scan_frame (n + 1) frame
+	in scan_frame 0 frame
+  in scan_cenv 0 cenv
+
+let is_tail = function
+    Vm.Return -> true
+  | _ -> false
+
+let rec compile code cenv next =
   match code with
       S.SConst c ->
 	Vm.Constant (c, next)
     | S.SQuote c ->
 	Vm.Constant (c, next)
     | S.SVar v ->
-	Vm.Refer (v, next)
+	let pos = compile_lookup v cenv in
+	  Vm.Refer (pos, next)
     | S.SLambda (vars, body) ->
-	Vm.Close (vars, compile body Vm.Return, next)
+	let cenv' = extend cenv vars in
+	  Vm.Close (compile body cenv' Vm.Return, next)
     | S.SIf (test, t, e) ->
-	let thenc = compile t next in
-	let elsec = compile e next in
-	  compile test @@ Vm.Test (thenc, elsec)
+	let thenc = compile t cenv next in
+	let elsec = compile e cenv next in
+	  compile test cenv @@ Vm.Test (thenc, elsec)
     | S.SBegin xs ->
 	let rec iter xxs c =
 	  match xxs with
-	      [] ->
-		c			(* FIXME *)
+	      [] -> c
 	    | x::xs ->
-		iter xs @@ compile x c
+		compile x cenv @@ iter xs c
 	in iter xs next
     | S.SSet (v, x) ->
-	compile x @@ Vm.Assign (v, next)
+	let pos = compile_lookup v cenv in
+	  compile x cenv @@ Vm.Assign (pos, next)
     | S.SCallCC x ->
-	let c = Vm.Conti (Vm.Argument (compile x Vm.Apply)) in
-	  if false then c else Vm.Frame (next, c)
+	let c = Vm.Conti (Vm.Argument (compile x cenv Vm.Apply)) in
+	  if is_tail next then c else Vm.Frame (next, c)
     | S.SApply (proc, args) ->
 	let rec iter args c =
 	  match args with
 	      [] ->
-		if false then c	else Vm.Frame (next, c)
+		if is_tail next then c else Vm.Frame (next, c)
 	    | arg::args ->
-		iter args @@ compile arg @@ Vm.Argument c
-	in iter args @@ compile proc @@ Vm.Apply
+		iter args @@ compile arg cenv @@ Vm.Argument c
+	in iter args @@ compile proc cenv @@ Vm.Apply
     | S.SDefinition (v, x) ->
 	Obj.magic false
