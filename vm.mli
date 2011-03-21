@@ -24,6 +24,7 @@ and insn =
   | Frame of insn * insn
   | Argument of insn
   | Apply
+  | PApply of insn
   | Return
 
 type state

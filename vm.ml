@@ -25,6 +25,7 @@ and insn =
   | Frame of insn * insn
   | Argument of insn
   | Apply
+  | PApply of insn
   | Return
 
 and frame = {
@@ -97,7 +98,7 @@ let rec run s =
 	Env.update_name v s.acc s.env;
 	run {s with next}
     | Conti next ->
-	run {s with acc = Cont s.stack}
+	run {s with acc = Cont s.stack; next}
     | Nuate (stack, v) ->
 	run s			(* FIXME *)
     | Frame (return, next) ->
@@ -112,6 +113,13 @@ let rec run s =
 		run {s with next = body; env = (Env.extend env vars s.rib)}
 	    | _ ->
 		raise @@ Invalid_operation (show s.acc ^ " can't be applied")
+	end
+    | PApply next ->
+	begin
+	  match s.acc with
+	      Primitive proc ->
+		run {s with acc = proc s.rib; next}
+	    | _ -> raise @@ Invalid_operation (show s.acc ^ " can't be applied")
 	end
     | Return ->
 	begin
