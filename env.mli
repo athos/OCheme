@@ -7,3 +7,4 @@ val enclosing_environment : ('a, 'b) t -> ('a, 'b) t
 val extend : ('a, 'b) t -> 'a list -> 'b list -> ('a, 'b) t
 val lookup : 'a -> ('a, 'b) t -> 'b
 val update_name : 'a -> 'b -> ('a, 'b) t -> unit
+val define_name : 'a -> 'b -> ('a, 'b) t -> ('a, 'b) t

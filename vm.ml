@@ -74,6 +74,9 @@ let initial_state next env =
 
 let empty_env = Env.empty
 
+let define_variable variable value env =
+  Env.define_name variable value env
+
 let rec run s =
   match s.next with
       Halt -> s.acc

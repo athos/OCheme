@@ -37,5 +37,6 @@ val show : value -> string
 
 val initial_state : insn -> env -> state
 val empty_env : env
+val define_variable : variable -> value -> env -> env
 
 val run : state -> value

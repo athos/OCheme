@@ -35,3 +35,13 @@ let update_name v x e =
   lookup_and_do v e
     (fun nv -> nv.value <- x)
     (fun f -> f ())
+
+let define_name v x e =
+  lookup_and_do v e
+    (fun nv -> nv.value <- x; e)
+    (fun f ->
+       let entry = {name = v; value = x} in
+	 match e with
+	     [] -> [[entry]]
+	   | frame::env ->
+	       (entry::frame)::env)
