@@ -49,6 +49,14 @@ let from_bool x = Bool x
 let from_int x = Int x
 let from_list xs = List.fold_right cons xs Nil
 
+let to_bool = function
+    Bool x -> x
+  | _ -> raise Runtime_error
+
+let to_int = function
+    Int x -> x
+  | _ -> raise Runtime_error
+
 let rec to_list x =
   if is_null x then
     []

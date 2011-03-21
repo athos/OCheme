@@ -18,6 +18,8 @@ val cddr : t -> t
 val from_bool : bool -> t
 val from_int : int -> t
 val from_list : t list -> t
+val to_bool : t -> bool
+val to_int : t -> int
 val to_list : t -> t list
 val intern : string -> t
 val symbol_name : t -> string
