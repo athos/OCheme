@@ -1,10 +1,11 @@
-type ('a, 'b) t
-type ('a, 'b) frame
+type 'a t
+type 'a frame
+type pos = int * int
 
-val empty : ('a, 'b) t
-val first_frame : ('a, 'b) t  -> ('a, 'b) frame
-val enclosing_environment : ('a, 'b) t -> ('a, 'b) t
-val extend : ('a, 'b) t -> 'a list -> 'b list -> ('a, 'b) t
-val lookup : 'a -> ('a, 'b) t -> 'b
-val update_name : 'a -> 'b -> ('a, 'b) t -> unit
-val define_name : 'a -> 'b -> ('a, 'b) t -> ('a, 'b) t
+val empty : 'a t
+val first_frame : 'a t  -> 'a frame
+val enclosing_environment : 'a t -> 'a t
+val extend : 'a t -> 'a list -> 'a t
+val lookup : pos -> 'a t -> 'a
+val update_name : pos -> 'a -> 'a t -> unit
+val define_name : pos -> 'a -> 'a t -> 'a t
