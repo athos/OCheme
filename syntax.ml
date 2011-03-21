@@ -1,6 +1,6 @@
 open Util
 
-type variable = Vm.variable
+type variable = string
 
 module V = Value
 
@@ -18,10 +18,7 @@ type t =
   | SApply of t * t list
   | SDefinition of variable * t
 
-let as_variable x = Vm.as_variable x
-
-let variable_of_symbol s =
-  as_variable @@ V.symbol_name s
+let as_variable = V.symbol_name
 
 let assert_pred pred =
   if pred () then
@@ -45,7 +42,7 @@ let rec from_value v =
     if V.is_bool v || V.is_number v then
       SConst v
     else if V.is_symbol v then
-      SVar (variable_of_symbol v)
+      SVar (as_variable v)
     else
       raise @@ Syntax_error ""		(* FIXME *)
   else
@@ -59,7 +56,7 @@ let rec from_value v =
 	  | "lambda" ->
 	      assert_pred (fun () -> List.length @@ V.to_list args >=2);
 	      assert_pred (fun () -> V.is_list args);
-	      SLambda ((List.map variable_of_symbol @@ (V.to_list @@ V.car args)),
+	      SLambda ((List.map as_variable @@ (V.to_list @@ V.car args)),
                        SBegin (List.map from_value @@ V.to_list @@ V.cdr args))
 	  | "if" ->
 	      assert_nargs 3 args;
@@ -72,7 +69,7 @@ let rec from_value v =
 	  | "set!" ->
 	      assert_nargs 2 args;
 	      assert_pred (fun () -> V.is_symbol @@ V.car args);
-	      SSet ((variable_of_symbol @@ V.car args),
+	      SSet ((as_variable @@ V.car args),
 		    (from_value @@ V.cadr args))
 	  | "call/cc" ->
 	      assert_nargs 1 args;
@@ -80,7 +77,7 @@ let rec from_value v =
 	  | "define" ->
 	      assert_nargs 2 args;
 	      assert_pred (fun () -> V.is_symbol @@ V.car args);
-	      SDefinition ((variable_of_symbol @@ V.car args),
+	      SDefinition ((as_variable @@ V.car args),
 			   (from_value @@ V.cadr args))
 	  | _ ->
 	      SApply ((from_value op),

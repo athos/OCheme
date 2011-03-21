@@ -1,4 +1,4 @@
-type variable = Vm.variable
+type variable = string
 
 type t =
     SConst of Value.t
@@ -14,5 +14,4 @@ type t =
 
 exception Syntax_error of string
 
-val as_variable : string -> variable
 val from_value : Value.t -> t
