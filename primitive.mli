@@ -1,1 +1,1 @@
-val load_primitives : Vm.env -> Vm.env
+val load_primitives : Vm.genv -> unit

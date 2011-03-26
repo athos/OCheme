@@ -62,9 +62,8 @@ let primitives =
   [("+", add); ("-", sub); ("*", mul); ("/", div); ("equal?", equal);
    ("cons", cons); ("car", car); ("cdr", cdr); ("display", display); ("newline", newline)]
 
-let load_primitives env =
-  List.fold_left
-    (fun env (name, proc) ->
-       Vm.define_variable (Vm.as_variable name) (Vm.Primitive proc) env)
-    env
+let load_primitives genv =
+  List.iter
+    (fun (name, proc) ->
+       Vm.define_variable genv (Vm.as_variable name) (Vm.Primitive proc))
     primitives
