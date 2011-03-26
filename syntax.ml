@@ -1,6 +1,6 @@
 open Util
 
-type variable = string
+type variable = Vm.variable
 
 module V = Value
 
@@ -18,7 +18,8 @@ type t =
   | SApply of t * t list
   | SDefinition of variable * t
 
-let as_variable = V.symbol_name
+let as_variable x =
+  Vm.as_variable @@ V.symbol_name x
 
 let assert_pred pred =
   if pred () then
