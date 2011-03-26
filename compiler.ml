@@ -48,12 +48,11 @@ let rec compile code cenv next =
 	let elsec = compile e cenv next in
 	  compile test cenv @@ Vm.Test (thenc, elsec)
     | S.SBegin xs ->
-	let rec iter xxs c =
-	  match xxs with
-	      [] -> c
-	    | x::xs ->
-		compile x cenv @@ iter xs c
-	in iter xs next
+	let rec iter = function
+	    [] -> next
+	  | x::xs ->
+              compile x cenv @@ iter xs
+	in iter xs
     | S.SSet (v, x) ->
 	let pos = compile_lookup v cenv in
 	  compile x cenv @@ Vm.Assign (pos, next)
