@@ -76,10 +76,10 @@ let empty_env = Env.empty
 let define_variable variable value env =
   Env.define_name variable value env
 
-let return_state s = function
+let return_state acc = function
     [] -> raise Runtime_error
   | {return = next; cenv = env; crib = rib}::stack ->
-      {s with acc = List.hd s.rib; next; env; rib; stack}
+      {acc; next; env; rib; stack}
 
 let rec run s =
   match s.next with
@@ -114,7 +114,10 @@ let rec run s =
 	  match s.acc with
 	      Closure (body, env) ->
 		run {s with next = body; env = (Env.extend env s.rib)}
-	    | Cont stack -> run @@ return_state s stack
+            | Primitive proc ->
+                let v = proc s.rib in
+                  run {s with acc = v; next = Return}
+	    | Cont stack -> run @@ return_state (List.hd s.rib) stack
 	    | _ ->
 		raise @@ Invalid_operation (show s.acc ^ " can't be applied")
 	end
@@ -125,4 +128,4 @@ let rec run s =
 		run {s with acc = proc s.rib; next}
 	    | _ -> raise @@ Invalid_operation (show s.acc ^ " can't be applied")
 	end
-    | Return -> run @@ return_state s s.stack
+    | Return -> run @@ return_state s.acc s.stack
