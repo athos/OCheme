@@ -1,7 +1,9 @@
 open Util
 
+type variable = string
 type pos = Env.pos
 type env = value Env.t
+and genv = (variable, value) GEnv.t
 
 and value =
     Nil
@@ -15,11 +17,13 @@ and value =
 
 and insn =
     Halt
-  | Refer of pos * insn
+  | LRef of pos * insn
+  | GRef of variable * insn
   | Constant of value * insn
   | Close of insn * insn
   | Test of insn * insn
-  | Assign of pos * insn
+  | LSet of pos * insn
+  | GSet of variable * insn
   | Conti of insn
   | Nuate of stack * pos
   | Frame of insn * insn
@@ -41,11 +45,14 @@ type state = {
   next : insn;
   env : env;
   rib : value list;
-  stack : stack
+  stack : stack;
+  genv : genv
 }
 
 exception Runtime_error
 exception Invalid_operation of string
+
+let as_variable x = x
 
 let as_bool = function
     Bool false -> false
@@ -68,28 +75,34 @@ and show_pair (x, xs) =
     | _ -> " . " ^ show xs
   in show x ^ s
 
-let initial_state next env =
-  {acc = Nil; next; env; rib = []; stack = []}
+let initial_state next genv =
+  {acc = Nil; next; env = Env.empty; rib = []; stack = []; genv = genv}
 
-let empty_env = Env.empty
+let empty_genv () = GEnv.create ()
 
-let define_variable variable value env =
-  Env.define_name variable value env
+let define_variable genv variable value =
+  GEnv.put genv variable value
 
-let return_state acc = function
+let return_state s acc = function
     [] -> raise Runtime_error
   | {return = next; cenv = env; crib = rib}::stack ->
-      {acc; next; env; rib; stack}
+      {s with acc; next; env; rib; stack}
 
 let rec run s =
   match s.next with
       Halt -> s.acc
-    | Refer (pos, next) ->
+    | LRef (pos, next) ->
 	let value =
 	  try Env.lookup pos s.env
 	  with e ->
 	    raise Runtime_error
 	in run {s with acc = value; next}
+    | GRef (var, next) ->
+        let value =
+          try GEnv.get s.genv var
+          with e ->
+            raise Runtime_error
+        in run {s with acc = value; next}
     | Constant (value, next) ->
 	run {s with acc = value; next}
     | Close (body, next) ->
@@ -97,9 +110,12 @@ let rec run s =
     | Test (t, e) ->
 	let next = if as_bool s.acc then t else e
 	in run {s with next}
-    | Assign (pos, next) ->
+    | LSet (pos, next) ->
 	Env.update_name pos s.acc s.env;
 	run {s with next}
+    | GSet (var, next) ->
+        GEnv.put s.genv var s.acc;
+        run {s with next}
     | Conti next ->
 	run {s with acc = Cont s.stack; next}
     | Nuate (stack, pos) ->
@@ -117,7 +133,7 @@ let rec run s =
             | Primitive proc ->
                 let v = proc s.rib in
                   run {s with acc = v; next = Return}
-	    | Cont stack -> run @@ return_state (List.hd s.rib) stack
+	    | Cont stack -> run @@ return_state s (List.hd s.rib) stack
 	    | _ ->
 		raise @@ Invalid_operation (show s.acc ^ " can't be applied")
 	end
@@ -128,4 +144,4 @@ let rec run s =
 		run {s with acc = proc s.rib; next}
 	    | _ -> raise @@ Invalid_operation (show s.acc ^ " can't be applied")
 	end
-    | Return -> run @@ return_state s.acc s.stack
+    | Return -> run @@ return_state s s.acc s.stack
