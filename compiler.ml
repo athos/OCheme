@@ -5,26 +5,30 @@ module V = Value
 
 exception Compile_error
 
-type name = string
-type cenv = name list list
+type name = S.variable
+type ntype = Local | Global
+type entry = {name : name; ntype : ntype}
+type cenv = entry list list
 
 let empty_cenv : cenv = []
 
 let extend cenv vars =
-  vars :: cenv
+  (List.map (fun name -> {name; ntype = Local}) vars) :: cenv
 
 let compile_lookup name cenv =
   let rec scan_cenv m = function
       [] -> raise Compile_error
     | frame::cenv ->
-	let rec scan_frame n = function
-	    [] -> scan_cenv (m + 1) cenv
-	  | v::frame ->
-	      if v = name then
-		(m, n)
-	      else
-		scan_frame (n + 1) frame
-	in scan_frame 0 frame
+        let rec scan_frame n = function
+            [] -> scan_cenv (m + 1) cenv
+          | {name = v; ntype = ntype}::frame ->
+              if v = name then
+                match ntype with
+                    Local -> `Local (m, n)
+                  | Global -> `Global
+              else
+                scan_frame (n + 1) frame
+        in scan_frame 0 frame
   in scan_cenv 0 cenv
 
 let is_tail = function
@@ -38,8 +42,13 @@ let rec compile code cenv next =
     | S.SQuote c ->
 	Vm.Constant (c, next)
     | S.SVar v ->
-	let pos = compile_lookup v cenv in
-	  Vm.Refer (pos, next)
+        begin
+          match compile_lookup v cenv with
+              `Local (m, n) ->
+                Vm.LRef ((m, n), next)
+            | `Global ->
+                Vm.GRef (v, next)
+        end
     | S.SLambda (vars, body) ->
 	let cenv' = extend cenv vars in
 	  Vm.Close (compile body cenv' Vm.Return, next)
@@ -54,8 +63,12 @@ let rec compile code cenv next =
               compile x cenv @@ iter xs
 	in iter xs
     | S.SSet (v, x) ->
-	let pos = compile_lookup v cenv in
-	  compile x cenv @@ Vm.Assign (pos, next)
+        let c = match compile_lookup v cenv with
+            `Local (m, n) ->
+              Vm.LSet ((m, n), next)
+          | `Global ->
+              Vm.GSet (v, next)
+        in compile x cenv c
     | S.SCallCC x ->
 	let c = Vm.Conti (Vm.Argument (compile x cenv Vm.Apply)) in
 	  if is_tail next then c else Vm.Frame (next, c)
