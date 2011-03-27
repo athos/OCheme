@@ -12,8 +12,10 @@ type cenv = entry list list
 
 let empty_cenv : cenv = []
 
-let extend cenv vars =
-  (List.map (fun name -> {name; ntype = Local}) vars) :: cenv
+let extend ?(ntype=Local) cenv vars =
+  (List.map (fun name -> {name; ntype}) vars) :: cenv
+
+let extend_global = extend ~ntype:Global
 
 let compile_lookup name cenv =
   let rec scan_cenv m = function
