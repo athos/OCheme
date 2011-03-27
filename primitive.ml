@@ -58,9 +58,16 @@ let newline = function
     [] -> print_newline (); V.nil
   | _ -> raise Vm.Runtime_error
 
+let read = function
+    [] ->
+      let s = Stream.of_channel stdin in
+        Reader.read s
+  | _ -> raise Vm.Runtime_error
+
 let primitives =
   [("+", add); ("-", sub); ("*", mul); ("/", div); ("equal?", equal);
-   ("cons", cons); ("car", car); ("cdr", cdr); ("display", display); ("newline", newline)]
+   ("cons", cons); ("car", car); ("cdr", cdr); ("display", display);
+   ("newline", newline); ("read", read)]
 
 let load_primitives genv =
   List.iter
