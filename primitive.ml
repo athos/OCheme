@@ -69,8 +69,15 @@ let primitives =
    ("cons", cons); ("car", car); ("cdr", cdr); ("display", display);
    ("newline", newline); ("read", read)]
 
-let load_primitives genv =
-  List.iter
-    (fun (name, proc) ->
-       Vm.define_variable genv (Vm.as_variable name) (Vm.Primitive proc))
-    primitives
+let load_primitives () =
+  let env = Vm.empty_genv () in
+    List.iter
+      (fun (name, proc) ->
+         Vm.define_variable env (Vm.as_variable name) (Vm.Primitive proc))
+      primitives;
+    env
+
+let define_primitives () =
+  Compiler.extend_global
+    Compiler.empty_cenv
+    (List.map (fun (name, _) -> Vm.as_variable name) primitives)
