@@ -1,0 +1,43 @@
+.PHONY: all clean
+
+NATIVE_ENABLED = false
+BYTE_ENABLED = true
+
+#
+# Various options
+#
+# OCAMLFLAGS    +=
+# OCAMLCFLAGS   +=
+# OCAMLOPTFLAGS +=
+# OCAML_LINK_FLAGS +=
+# OCAML_BYTE_LINK_FLAGS +=
+# OCAML_NATIVE_LINK_FLAGS +=
+
+################################################
+# Build an OCaml program
+#
+
+FILES[] =
+    util
+    env
+    gEnv
+    vm
+    value
+    reader
+    syntax
+    compiler
+    primitive
+    main
+
+PROGRAM = ocheme
+# OCAML_LIBS +=
+# OCAML_CLIBS +=
+# OCAML_OTHER_LIBS +=
+# OCAML_LIB_FLAGS +=
+
+all: $(OCamlProgram $(PROGRAM), $(FILES))
+
+clean:
+    rm -f *.cm[oi] $(PROGRAM) *~
+
+.DEFAULT: all
