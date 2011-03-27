@@ -1,2 +1,6 @@
 *~
 *.cm[iox]
+.omakedb*
+*.omc
+ocheme
+ocheme.run
