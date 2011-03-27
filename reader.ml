@@ -95,8 +95,10 @@ let rec read s =
 	'(' -> read_list s
       | '#' -> read_bool s
       | '\'' ->
+          junk s;
 	  V.from_list [V.intern "quote"; read s]
       | '`' ->
+          junk s;
 	  V.from_list [V.intern "quasiquote"; read s]
       | ',' ->
 	  junk s;
