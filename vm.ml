@@ -29,7 +29,6 @@ and insn =
   | Frame of insn * insn
   | Argument of insn
   | Apply
-  | PApply of insn
   | Return
 
 and frame = {
@@ -135,12 +134,5 @@ let rec run s =
 	    | Cont stack -> run @@ return_state s (List.hd s.rib) stack
 	    | _ ->
 		raise @@ Runtime_error (show s.acc ^ " can't be applied")
-	end
-    | PApply next ->
-	begin
-	  match s.acc with
-	      Primitive proc ->
-		run {s with acc = proc s.rib; next}
-	    | _ -> raise @@ Runtime_error (show s.acc ^ " can't be applied")
 	end
     | Return -> run @@ return_state s s.acc s.stack
