@@ -128,10 +128,10 @@ let rec run s =
 	begin
 	  match s.acc with
 	      Closure (body, env) ->
-		run {s with next = body; env = (Env.extend env s.rib)}
+		run {s with next = body; env = (Env.extend env s.rib); rib = []}
             | Primitive proc ->
                 let v = proc s.rib in
-                  run {s with acc = v; next = Return}
+                  run {s with acc = v; next = Return; rib = []}
 	    | Cont stack -> run @@ return_state s (List.hd s.rib) stack
 	    | _ ->
 		raise @@ Runtime_error (show s.acc ^ " can't be applied")
