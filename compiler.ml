@@ -6,28 +6,22 @@ module V = Value
 exception Compile_error
 
 type name = S.variable
-type ntype = Local | Global
-type entry = {name : name; ntype : ntype}
-type cenv = entry list list
+type cenv = name list list
 
 let empty_cenv : cenv = []
 
-let extend ?(ntype=Local) cenv vars =
-  (List.map (fun name -> {name; ntype}) vars) :: cenv
-
-let extend_global = extend ~ntype:Global
+let extend cenv vars =
+  vars :: cenv
 
 let compile_lookup name cenv =
   let rec scan_cenv m = function
-      [] -> raise Compile_error
+      [] -> `Global
     | frame::cenv ->
         let rec scan_frame n = function
             [] -> scan_cenv (m + 1) cenv
-          | {name = v; ntype = ntype}::frame ->
+          | v::frame ->
               if v = name then
-                match ntype with
-                    Local -> `Local (m, n)
-                  | Global -> `Global
+                `Local (m, n)
               else
                 scan_frame (n + 1) frame
         in scan_frame 0 frame

@@ -79,8 +79,3 @@ let load_primitives () =
          Vm.define_variable env (Vm.as_variable name) (Vm.Primitive proc))
       primitives;
     env
-
-let define_primitives () =
-  Compiler.extend_global
-    Compiler.empty_cenv
-    (List.map (fun (name, _) -> Vm.as_variable name) primitives)
