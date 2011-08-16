@@ -96,7 +96,12 @@ let rec standard_env () =
   let env = Vm.empty_genv () in
   List.iter
     (fun (name, proc) ->
-      Vm.define_variable env (Vm.as_variable name) (Vm.Primitive proc))
+      let v =
+        match proc with
+        | `Proc proc' -> Vm.Primitive proc'
+        | `Apply -> Vm.PrimitiveApply
+        | `CallCC -> Vm.PrimitiveCallCC
+      in Vm.define_variable env (Vm.as_variable name) v)
     primitives;
   env
 
@@ -105,7 +110,10 @@ and standard_env' = function
   | _ -> error "wrong number of arguments for standard-environment"
 
 and primitives =
-  [("+", add); ("-", sub); ("*", mul); ("/", div); ("equal?", equal);
-   ("cons", cons); ("car", car); ("cdr", cdr); ("display", display);
-   ("newline", newline); ("read", read); ("eval", eval'); ("null?", is_null);
-   ("empty-environment", empty_env); ("standard-environment", standard_env')]
+  [("+", `Proc add); ("-", `Proc sub); ("*", `Proc mul); ("/", `Proc div);
+   ("equal?", `Proc equal); ("cons", `Proc cons); ("car", `Proc car);
+   ("cdr", `Proc cdr); ("display", `Proc display); ("newline", `Proc newline);
+   ("read", `Proc read); ("eval", `Proc eval'); ("null?", `Proc is_null);
+   ("empty-environment", `Proc empty_env);
+   ("standard-environment", `Proc standard_env');
+   ("apply", `Apply); ("call/cc", `CallCC)]
