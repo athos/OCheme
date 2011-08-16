@@ -131,16 +131,32 @@ let rec run s =
     in run {s with rib = []; stack = frame::s.stack; next}
   | Argument next ->
     run {s with rib = (s.acc::s.rib); next}
-  | Apply ->
-    begin
-      match s.acc with
-      | Closure (body, env) ->
-	run {s with next = body; env = (Env.extend env s.rib); rib = []}
-      | Primitive proc ->
-        let v = proc s.rib in
-        run {s with acc = v; next = Return; rib = []}
-      | Cont stack -> run @@ return_state s (List.hd s.rib) stack
-      | _ ->
-	raise @@ Runtime_error (show s.acc ^ " can't be applied")
-    end
+  | Apply -> apply s
   | Return -> run @@ return_state s s.acc s.stack
+
+and apply s =
+  match s.acc with
+  | Closure (body, env) ->
+    run {s with next = body; env = (Env.extend env s.rib); rib = []}
+  | Primitive proc ->
+    let v = proc s.rib in
+    run {s with acc = v; next = Return; rib = []}
+  | PrimitiveApply ->
+    begin
+      match s.rib with
+      | [f; xs] ->
+        run {s with acc = f; next = Apply; rib = []} (* FIXME: rib *)
+      | _ ->
+        raise @@ Runtime_error "wrong number of arguments for apply"
+    end
+  | PrimitiveCallCC ->
+    begin
+      match s.rib with
+      | [f] ->
+        run {s with acc = f; rib = [Cont s.stack]; next = Apply}
+      | _ ->
+        raise @@ Runtime_error "wrong number of arguments for call/cc"
+    end
+  | Cont stack -> run @@ return_state s (List.hd s.rib) stack
+  | _ ->
+    raise @@ Runtime_error (show s.acc ^ " can't be applied")
