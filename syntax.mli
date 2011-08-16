@@ -10,6 +10,7 @@ type t =
   | SSet of variable * t
   | SApply of t * t list
   | SDefinition of variable * t
+  | SLet of (variable * t) list * t list
 
 exception Syntax_error of string
 

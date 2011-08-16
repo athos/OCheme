@@ -31,6 +31,7 @@ and insn =
   | Argument of insn
   | Apply
   | Return
+  | Extend of insn
 
 and frame = {
   return : insn;
@@ -160,6 +161,8 @@ let rec run s =
     run {s with rib = (s.acc::s.rib); next}
   | Apply -> apply s
   | Return -> run @@ return_state s s.acc s.stack
+  | Extend next ->
+    run {s with next; env = (Env.extend s.env s.rib); rib = []}
 
 and apply s =
   match s.acc with

@@ -16,6 +16,7 @@ type t =
   | SSet of variable * t
   | SApply of t * t list
   | SDefinition of variable * t
+  | SLet of (variable * t) list * t list
 
 let as_variable x =
   Vm.as_variable @@ V.symbol_name x
@@ -76,6 +77,19 @@ let rec from_value v =
 	assert_pred (fun () -> V.is_symbol @@ V.car args);
 	SDefinition ((as_variable @@ V.car args),
 		     (from_value @@ V.cadr args))
+      | "let" ->
+        let bindings = V.car args in
+        let body = V.cdr args in
+        let rec iter bindings ret =
+          if V.is_null bindings then
+            ret
+          else
+            let binding = V.car bindings in
+            let var = V.car binding in
+            let exp = V.cadr binding in
+            iter (V.cdr bindings)
+            @@ (Vm.as_variable @@ V.symbol_name var, from_value exp)::ret
+        in SLet (iter bindings [], List.map from_value @@ V.to_list body)
       | _ ->
 	SApply ((from_value op),
 		(List.map from_value @@ V.to_list args))

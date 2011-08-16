@@ -30,6 +30,7 @@ and insn =
   | Argument of insn
   | Apply
   | Return
+  | Extend of insn
 
 type state
 

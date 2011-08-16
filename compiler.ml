@@ -75,3 +75,12 @@ let rec compile code cenv next =
     in iter args @@ compile proc cenv @@ Vm.Apply
   | S.SDefinition (v, x) ->
     Obj.magic false
+  | S.SLet (bindings, body) ->
+    let rec iter bindings c =
+      match bindings with
+      | [] -> c
+      | (_, exp)::bindings ->
+        iter bindings @@ compile exp cenv @@ Vm.Argument c
+    in
+    let cenv' = extend cenv @@ List.map fst bindings in
+    iter bindings @@ Vm.Extend (compile (S.SBegin body) cenv' next)
