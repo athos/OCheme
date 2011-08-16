@@ -98,14 +98,14 @@ let rec run s =
   | LRef (pos, next) ->
     let value =
       try Env.lookup pos s.env
-      with e ->
-	raise @@ Runtime_error "no such variable"
+      with _ ->
+        assert false                    (* NOTREACHED *)
     in run {s with acc = value; next}
   | GRef (var, next) ->
     let value =
       try GEnv.get s.genv var
       with e ->
-        raise @@ Runtime_error "no such variable"
+        raise @@ Runtime_error (Printf.sprintf "no such variable: %s" var)
     in run {s with acc = value; next}
   | Constant (value, next) ->
     run {s with acc = value; next}
