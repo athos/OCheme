@@ -84,7 +84,7 @@ let rec show = function
   | Symbol s -> s
   | Pair p -> "(" ^ show_pair p ^ ")"
   | Closure (_,_) -> "#<closusure>"
-  | Cont _ -> "#<cont>"
+  | Cont _ -> "#<continuation>"
   | Primitive _ | PrimitiveApply | PrimitiveCallCC -> "#<primitive>"
   | GEnv _ -> "#<environment>"
 and show_pair (x, xs) =
