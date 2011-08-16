@@ -70,8 +70,15 @@ let read = function
 
 let eval exp env =
   let c = Syntax.from_value exp in
-  let b = Compiler.compile c Compiler.empty_cenv Vm.Halt in
-  Vm.run @@ Vm.initial_state b env
+  let rec f = function
+    | Syntax.SDefinition (var, exp') ->
+      let v = f exp' in
+      Vm.define_variable env var v;
+      Vm.Bool false
+    | c ->
+      let b = Compiler.compile c Compiler.empty_cenv Vm.Halt in
+      Vm.run @@ Vm.initial_state b env
+  in f c
 
 let eval' = function
   | [x; e] -> eval x @@ Vm.env_from_value e
