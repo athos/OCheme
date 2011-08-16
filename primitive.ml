@@ -79,16 +79,20 @@ let empty_env = function
   | [] -> Vm.GEnv (Vm.empty_genv ())
   | _ -> error "wrong number of arguments for empty-environment"
 
-let primitives =
+let rec primitives =
   [("+", add); ("-", sub); ("*", mul); ("/", div); ("equal?", equal);
    ("cons", cons); ("car", car); ("cdr", cdr); ("display", display);
    ("newline", newline); ("read", read); ("eval", eval);
-   ("empty-environment", empty_env)]
+   ("empty-environment", empty_env); ("standard-environment", standard_env')]
 
-let load_primitives () =
+and standard_env () =
   let env = Vm.empty_genv () in
   List.iter
     (fun (name, proc) ->
       Vm.define_variable env (Vm.as_variable name) (Vm.Primitive proc))
     primitives;
   env
+
+and standard_env' = function
+  | [] -> Vm.GEnv (standard_env ())
+  | _ -> error "wrong number of arguments for standard-environment"
