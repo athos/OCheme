@@ -65,9 +65,6 @@ let rec compile code cenv next =
       | `Global ->
         Vm.GSet (v, next)
     in compile x cenv c
-  | S.SCallCC x ->
-    let c = Vm.Conti (Vm.Argument (compile x cenv Vm.Apply)) in
-    if is_tail next then c else Vm.Frame (next, c)
   | S.SApply (proc, args) ->
     let rec iter args c =
       match args with

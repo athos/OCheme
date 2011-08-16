@@ -8,7 +8,6 @@ type t =
   | SIf of t * t * t
   | SBegin of t list
   | SSet of variable * t
-  | SCallCC of t
   | SApply of t * t list
   | SDefinition of variable * t
 

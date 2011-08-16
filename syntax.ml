@@ -14,7 +14,6 @@ type t =
   | SIf of t * t * t
   | SBegin of t list
   | SSet of variable * t
-  | SCallCC of t
   | SApply of t * t list
   | SDefinition of variable * t
 
@@ -72,9 +71,6 @@ let rec from_value v =
 	assert_pred (fun () -> V.is_symbol @@ V.car args);
 	SSet ((as_variable @@ V.car args),
 	      (from_value @@ V.cadr args))
-      | "call/cc" ->
-	assert_nargs 1 args;
-	SCallCC (from_value @@ V.car args)
       | "define" ->
 	assert_nargs 2 args;
 	assert_pred (fun () -> V.is_symbol @@ V.car args);
