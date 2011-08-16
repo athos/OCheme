@@ -164,7 +164,7 @@ and apply s =
     begin
       match s.rib with
       | [f; xs] ->
-        run {s with acc = f; next = Apply; rib = []} (* FIXME: rib *)
+        run {s with acc = f; next = Apply; rib = to_list xs}
       | _ ->
         raise @@ Runtime_error "wrong number of arguments for apply"
     end
