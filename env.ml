@@ -4,7 +4,7 @@ type 'a frame = 'a ref list
 type 'a t = 'a frame list
 type pos = int * int
 
-exception Name_Not_Found
+exception Name_not_found
 
 let empty : 'a t = []
 
@@ -16,7 +16,7 @@ let extend env vals =
 
 let lookup_and_do (m, n) e sk fk =
   let rec scan_env m = function
-    | [] -> raise Name_Not_Found
+    | [] -> raise Name_not_found
     | frame::env ->
       if m = 0 then
 	let rec scan_frame n = function
@@ -34,12 +34,12 @@ let lookup_and_do (m, n) e sk fk =
 let lookup pos e =
   lookup_and_do pos e
     (fun ent -> ent.contents)
-    (fun () -> raise Name_Not_Found)
+    (fun () -> raise Name_not_found)
 
 let update_name pos x e =
   lookup_and_do pos e
     (fun ent -> ent := x)
-    (fun () -> raise Name_Not_Found)
+    (fun () -> raise Name_not_found)
 
 let define_name pos x e =
   lookup_and_do pos e

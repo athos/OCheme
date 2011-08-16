@@ -2,6 +2,8 @@ type 'a t
 type 'a frame
 type pos = int * int
 
+exception Name_not_found
+
 val empty : 'a t
 val first_frame : 'a t  -> 'a frame
 val enclosing_environment : 'a t -> 'a t
