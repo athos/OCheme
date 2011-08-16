@@ -14,6 +14,8 @@ and value =
   | Closure of insn * env
   | Cont of stack
   | Primitive of (value list -> value)
+  | PrimitiveApply
+  | PrimitiveCallCC
   | GEnv of genv
 
 and insn =
@@ -66,7 +68,7 @@ let rec show = function
   | Pair p -> "(" ^ show_pair p ^ ")"
   | Closure (_,_) -> "#<closusure>"
   | Cont _ -> "#<cont>"
-  | Primitive _ -> "#<primitive>"
+  | Primitive _ | PrimitiveApply | PrimitiveCallCC -> "#<primitive>"
   | GEnv _ -> "#<environment>"
 and show_pair (x, xs) =
   let s = match xs with

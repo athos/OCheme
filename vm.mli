@@ -13,6 +13,8 @@ type value =
   | Closure of insn * env
   | Cont of stack
   | Primitive of (value list -> value)
+  | PrimitiveApply
+  | PrimitiveCallCC
   | GEnv of genv
 
 and insn =
