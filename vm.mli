@@ -26,8 +26,6 @@ and insn =
   | Test of insn * insn
   | LSet of pos * insn
   | GSet of variable * insn
-  | Conti of insn
-  | Nuate of stack * pos
   | Frame of insn * insn
   | Argument of insn
   | Apply

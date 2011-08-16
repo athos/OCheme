@@ -27,8 +27,6 @@ and insn =
   | Test of insn * insn
   | LSet of pos * insn
   | GSet of variable * insn
-  | Conti of insn
-  | Nuate of stack * pos
   | Frame of insn * insn
   | Argument of insn
   | Apply
@@ -141,10 +139,6 @@ let rec run s =
   | GSet (var, next) ->
     GEnv.put s.genv var s.acc;
     run {s with next}
-  | Conti next ->
-    run {s with acc = Cont s.stack; next}
-  | Nuate (stack, pos) ->
-    run s			(* FIXME *)
   | Frame (return, next) ->
     let frame = {return; cenv = s.env; crib = s.rib}
     in run {s with rib = []; stack = frame::s.stack; next}
