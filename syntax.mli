@@ -1,7 +1,7 @@
 type variable = Vm.variable
 
 type t =
-    SConst of Value.t
+  | SConst of Value.t
   | SQuote of Value.t
   | SVar of variable
   | SLambda of variable list * t

@@ -18,53 +18,54 @@ let arithmetic op e xs =
 let add = arithmetic (+) 0
 let mul = arithmetic ( * ) 1
 let sub = function
-    [] -> error "procedure requires at least one argument: (-)"
+  | [] -> error "procedure requires at least one argument: (-)"
   | [x] -> V.from_int (- (V.to_int x))
   | x::xs ->
-      arithmetic (-) (V.to_int x) xs
+    arithmetic (-) (V.to_int x) xs
 let div = function
-    [] -> error "procedure requires at least one argument: (/)"
+  | [] -> error "procedure requires at least one argument: (/)"
   | [x] -> V.from_int 0
   | x::xs ->
-      arithmetic (/) (V.to_int x) xs
+    arithmetic (/) (V.to_int x) xs
 
 let equal xs =
   let rec equal2 x y =
     match x, y with
-	Vm.Nil, Vm.Nil -> true
-      | (Vm.Bool x),       (Vm.Bool y)       -> x = y
-      | (Vm.Int x),        (Vm.Int y)        -> x = y
-      | (Vm.Symbol x),     (Vm.Symbol y)     -> x = y
-      | (Vm.Pair (x1,x2)), (Vm.Pair (y1,y2)) -> x = y && equal2 x2 y2
-      | _,                    _              -> false
-  in match xs with
-      [x; y] -> V.from_bool @@ equal2 x y
-    | _ -> error "wrong number of arguments for equal?"
+    | Vm.Nil, Vm.Nil -> true
+    | (Vm.Bool x),       (Vm.Bool y)       -> x = y
+    | (Vm.Int x),        (Vm.Int y)        -> x = y
+    | (Vm.Symbol x),     (Vm.Symbol y)     -> x = y
+    | (Vm.Pair (x1,x2)), (Vm.Pair (y1,y2)) -> x = y && equal2 x2 y2
+    | _,                    _              -> false
+  in
+  match xs with
+  | [x; y] -> V.from_bool @@ equal2 x y
+  | _ -> error "wrong number of arguments for equal?"
 
 let cons = function
-    [x; y] -> V.cons x y
+  | [x; y] -> V.cons x y
   | _ -> error "wrong number of arguments for cons"
 
 let car = function
-    [x] -> V.car x
+  | [x] -> V.car x
   | _ -> error "wrong number of arguments for car"
 
 let cdr = function
-    [x] -> V.cdr x
+  | [x] -> V.cdr x
   | _ -> error "wrong number of arguments for cdr"
 
 let display = function
-    [x] -> print_string @@ V.show x; V.nil
+  | [x] -> print_string @@ V.show x; V.nil
   | _ -> error "wrong number of arguments for display"
 
 let newline = function
-    [] -> print_newline (); V.nil
+  | [] -> print_newline (); V.nil
   | _ -> error "wrong number of arguments for newline"
 
 let read = function
-    [] ->
-      let s = Stream.of_channel stdin in
-        Reader.read s
+  | [] ->
+    let s = Stream.of_channel stdin in
+    Reader.read s
   | _ -> error "wrong number of arguments for read"
 
 let primitives =
@@ -74,8 +75,8 @@ let primitives =
 
 let load_primitives () =
   let env = Vm.empty_genv () in
-    List.iter
-      (fun (name, proc) ->
-         Vm.define_variable env (Vm.as_variable name) (Vm.Primitive proc))
-      primitives;
-    env
+  List.iter
+    (fun (name, proc) ->
+      Vm.define_variable env (Vm.as_variable name) (Vm.Primitive proc))
+    primitives;
+  env

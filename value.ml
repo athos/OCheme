@@ -4,29 +4,29 @@ open Vm
 type t = value
 
 let is_null = function
-    Nil -> true
+  | Nil -> true
   | _ -> false
 
 let is_bool = function
-    Bool _ -> true
+  | Bool _ -> true
   | _ -> false
 
 let is_number = function
-    Int _ -> true
+  | Int _ -> true
   | _ -> false
 
 let is_symbol = function
-    Symbol _ -> true
+  | Symbol _ -> true
   | _ -> false
 
 let is_pair = function
-    Pair _ -> true
+  | Pair _ -> true
   | _ -> false
 
 let rec is_list = function
-    Nil -> true
+  | Nil -> true
   | Pair (car,cdr)
-      -> is_list cdr
+    -> is_list cdr
   | _ -> false
 
 let as_bool x = Vm.as_bool x
@@ -50,11 +50,11 @@ let from_int x = Int x
 let from_list xs = List.fold_right cons xs Nil
 
 let to_bool = function
-    Bool x -> x
+  | Bool x -> x
   | x -> raise @@ Runtime_error (show x ^ " is not boolean")
 
 let to_int = function
-    Int x -> x
+  | Int x -> x
   | x -> raise @@ Runtime_error (show x ^ " is not int")
 
 let rec to_list x =
@@ -63,7 +63,7 @@ let rec to_list x =
   else
     let a = car x in
     let d = cdr x in
-      a::to_list d
+    a::to_list d
 
 let symbol_table : (string, t) Hashtbl.t = Hashtbl.create 256
 
@@ -72,11 +72,11 @@ let intern name =
     Hashtbl.find symbol_table name
   else
     let sym = Symbol name in
-      Hashtbl.add symbol_table name sym;
-      sym
-
+    Hashtbl.add symbol_table name sym;
+    sym
+      
 let symbol_name = function
-    Symbol name -> name
+  | Symbol name -> name
   | x -> raise @@ Runtime_error (show x ^ " is not a symbol")
 
 let show x = Vm.show x

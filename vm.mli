@@ -5,7 +5,7 @@ type stack
 type pos = Env.pos
 
 type value =
-    Nil
+  | Nil
   | Bool of bool
   | Int of int
   | Symbol of string
@@ -15,7 +15,7 @@ type value =
   | Primitive of (value list -> value)
 
 and insn =
-    Halt
+  | Halt
   | LRef of pos * insn
   | GRef of variable * insn
   | Constant of value * insn
