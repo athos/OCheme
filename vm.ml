@@ -115,17 +115,21 @@ let rec run s =
   match s.next with
   | Halt -> s.acc
   | LRef (pos, next) ->
-    let value =
-      try Env.lookup pos s.env
-      with _ ->
+    begin
+      try
+        let value = Env.lookup pos s.env
+        in run {s with acc = value; next}
+      with Env.Name_not_found ->
         assert false                    (* NOTREACHED *)
-    in run {s with acc = value; next}
+    end
   | GRef (var, next) ->
-    let value =
-      try GEnv.get s.genv var
-      with e ->
+    begin
+      try
+        let value = GEnv.get s.genv var
+        in run {s with acc = value; next}
+      with GEnv.Name_not_found ->
         raise @@ Runtime_error (Printf.sprintf "no such variable: %s" var)
-    in run {s with acc = value; next}
+    end
   | Constant (value, next) ->
     run {s with acc = value; next}
   | Close (body, next) ->
@@ -134,11 +138,21 @@ let rec run s =
     let next = if as_bool s.acc then t else e
     in run {s with next}
   | LSet (pos, next) ->
-    Env.update_name pos s.acc s.env;
-    run {s with next}
+    begin
+      try
+        Env.update_name pos s.acc s.env;
+        run {s with next}
+      with Env.Name_not_found
+        -> assert false                   (* NOTREACHED *)
+    end
   | GSet (var, next) ->
-    GEnv.put s.genv var s.acc;
-    run {s with next}
+    begin
+      try
+        GEnv.put s.genv var s.acc;
+        run {s with next}
+      with GEnv.Name_not_found ->
+        raise @@ Runtime_error (Printf.sprintf "no such variable: %s" var)
+    end
   | Frame (return, next) ->
     let frame = {return; cenv = s.env; crib = s.rib}
     in run {s with rib = []; stack = frame::s.stack; next}
