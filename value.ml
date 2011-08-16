@@ -3,9 +3,7 @@ open Vm
 
 type t = value
 
-let is_null = function
-  | Nil -> true
-  | _ -> false
+let is_null = Vm.is_null
 
 let is_bool = function
   | Bool _ -> true
@@ -34,12 +32,10 @@ let as_bool x = Vm.as_bool x
 let nil = Nil
 
 let cons car cdr = Pair (car, cdr)
-let car = function
-  | Pair (a, _) -> a
-  | _ -> raise @@ Runtime_error "can't take car of non-pair object"
-let cdr = function
-  | Pair (_, d) -> d
-  | _ -> raise @@ Runtime_error "can't take cdr of non-pair object"
+
+let car = Vm.car
+let cdr = Vm.cdr
+
 let caar x = (car $ car) x
 let cadr x = (car $ cdr) x
 let cdar x = (cdr $ car) x
@@ -57,13 +53,7 @@ let to_int = function
   | Int x -> x
   | x -> raise @@ Runtime_error (show x ^ " is not int")
 
-let rec to_list x =
-  if is_null x then
-    []
-  else
-    let a = car x in
-    let d = cdr x in
-    a::to_list d
+let to_list = Vm.to_list
 
 let symbol_table : (string, t) Hashtbl.t = Hashtbl.create 256
 

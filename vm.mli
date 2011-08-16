@@ -39,6 +39,12 @@ exception Runtime_error of string
 
 val as_variable : string -> variable
 val as_bool : value -> bool
+
+val is_null : value -> bool
+val car : value -> value
+val cdr : value -> value
+val to_list : value -> value list
+
 val show : value -> string
 
 val initial_state : insn -> genv -> state

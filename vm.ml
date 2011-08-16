@@ -59,6 +59,25 @@ let as_bool = function
   | Bool false -> false
   | _ -> true
 
+let is_null = function
+  | Nil -> true
+  | _ -> false
+
+let car = function
+  | Pair (a, _) -> a
+  | _ -> raise @@ Runtime_error "can't take car of non-pair object"
+let cdr = function
+  | Pair (_, d) -> d
+  | _ -> raise @@ Runtime_error "can't take cdr of non-pair object"
+
+let rec to_list x =
+  if is_null x then
+    []
+  else
+    let a = car x in
+    let d = cdr x in
+    a::to_list d
+
 let rec show = function
   | Nil -> "()"
   | Bool true -> "#t"
