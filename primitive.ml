@@ -42,6 +42,10 @@ let equal xs =
   | [x; y] -> V.from_bool @@ equal2 x y
   | _ -> error "wrong number of arguments for equal?"
 
+let is_null = function
+  | [x] -> Vm.Bool (V.is_null x)
+  | _ -> error "wrong number of arguments for null?"
+
 let cons = function
   | [x; y] -> V.cons x y
   | _ -> error "wrong number of arguments for cons"
@@ -91,7 +95,7 @@ let empty_env = function
 let rec primitives =
   [("+", add); ("-", sub); ("*", mul); ("/", div); ("equal?", equal);
    ("cons", cons); ("car", car); ("cdr", cdr); ("display", display);
-   ("newline", newline); ("read", read); ("eval", eval');
+   ("newline", newline); ("read", read); ("eval", eval'); ("null?", is_null);
    ("empty-environment", empty_env); ("standard-environment", standard_env')]
 
 and standard_env () =
