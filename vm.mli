@@ -13,6 +13,7 @@ type value =
   | Closure of insn * env
   | Cont of stack
   | Primitive of (value list -> value)
+  | GEnv of genv
 
 and insn =
   | Halt
@@ -41,5 +42,6 @@ val show : value -> string
 val initial_state : insn -> genv -> state
 val empty_genv : unit -> genv
 val define_variable : genv -> variable -> value -> unit
+val env_from_value : value -> genv
 
 val run : state -> value

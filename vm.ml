@@ -14,6 +14,7 @@ and value =
   | Closure of insn * env
   | Cont of stack
   | Primitive of (value list -> value)
+  | GEnv of genv
 
 and insn =
   | Halt
@@ -66,6 +67,7 @@ let rec show = function
   | Closure (_,_) -> "#<closusure>"
   | Cont _ -> "#<cont>"
   | Primitive _ -> "#<primitive>"
+  | GEnv _ -> "#<environment>"
 and show_pair (x, xs) =
   let s = match xs with
     | Nil -> ""
@@ -80,6 +82,10 @@ let empty_genv () = GEnv.create ()
 
 let define_variable genv variable value =
   GEnv.put genv variable value
+
+let env_from_value = function
+  | GEnv genv -> genv
+  | _ -> raise @@ Runtime_error ""               (* FIXME: error message *)
 
 let return_state s acc = function
   | [] -> raise @@ Runtime_error "can't return here"
