@@ -68,10 +68,22 @@ let read = function
     Reader.read s
   | _ -> error "wrong number of arguments for read"
 
+let eval = function
+  | [x; e] ->
+    let c = Syntax.from_value x in
+    let b = Compiler.compile c Compiler.empty_cenv Vm.Halt in
+    Vm.run @@ Vm.initial_state b @@ Vm.env_from_value e
+  | _ -> error "wrong number of arguments for eval"
+
+let empty_env = function
+  | [] -> Vm.GEnv (Vm.empty_genv ())
+  | _ -> error "wrong number of arguments for empty-environment"
+
 let primitives =
   [("+", add); ("-", sub); ("*", mul); ("/", div); ("equal?", equal);
    ("cons", cons); ("car", car); ("cdr", cdr); ("display", display);
-   ("newline", newline); ("read", read)]
+   ("newline", newline); ("read", read); ("eval", eval);
+   ("empty-environment", empty_env)]
 
 let load_primitives () =
   let env = Vm.empty_genv () in
